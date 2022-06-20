@@ -1,4 +1,4 @@
-version: '3'
+version: '3.2'
 
 # Deploying services
 
@@ -6,12 +6,15 @@ services:
 
 # Elastic cluster to store data
   elasticsearch:
-    image: elasticsearch:7.17.0
+    build:
+      context: elasticsearch/
+      args:
+        ELK_VERSION: $ELK_VERSION
     
     volumes:
       - type: bind
-        source: "./elasticsearch/config/elasticsearch.yml"
-        target: "/usr/share/elasticsearch/config/elasticsearch.yml"
+        source: "./elasticsearch/config/elasticsearch.yaml"
+        target: "/usr/share/elasticsearch/config/elasticsearch.yaml"
         read_only: true
       - type: volume
         source: elasticsearch
@@ -21,9 +24,11 @@ services:
       -  "9300:9300"
     environment:
       ELASTIC_USER: elastic
-      ELASTIC_PASSWORD: changeme%
+      ELASTIC_PASSWORD: changeme
     networks:
       - elk
+      
+ # logstash to process sent log file
   logstash:
     build:
       context: logstash/
@@ -31,8 +36,8 @@ services:
         ELK_VERSION: $ELK_VERSION
     volumes:
       - type: bind
-        source: ./logstash/config/logstash.yml
-        target: /usr/share/logstash/config/logstash.yml
+        source: ./logstash/config/logstash.yaml
+        target: /usr/share/logstash/config/logstash.yaml
         read_only: true
       - type: bind
         source: ./logstash/pipeline
@@ -58,8 +63,8 @@ services:
         ELK_VERSION: $ELK_VERSION
     volumes:
       - type: bind
-        source: ./kibana/config/kibana.yml
-        target: /usr/share/kibana/config/kibana.yml
+        source: ./kibana/config/kibana.yaml
+        target: /usr/share/kibana/config/kibana.yaml
         read_only: true
     ports:
       - "5601:5601"
@@ -90,7 +95,7 @@ services:
     build: ./filebeat
     entrypoint: "filebeat -e -strict.perms=false"
     volumes:
-      - ./filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml
+      - ./filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yaml
       - ./nginx/log:/var/log/nginx
     networks:
       - elk
