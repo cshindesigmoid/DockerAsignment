@@ -1,4 +1,5 @@
-version: '3.2'
+
+  version: '3.2'
 
 # Deploying services
 
@@ -13,47 +14,22 @@ services:
     
     volumes:
       - type: bind
-        source: "./elasticsearch/config/elasticsearch.yaml"
-        target: "/usr/share/elasticsearch/config/elasticsearch.yaml"
+        source: ./elasticsearch/config/elasticsearch.yml
+        target: /usr/share/elasticsearch/config/elasticsearch.yml
         read_only: true
       - type: volume
         source: elasticsearch
-        target: "/usr/share/elasticsearch/data"
+        target: /usr/share/elasticsearch/data
     ports:
       -  "9200:9200"
-      -  "9300:9300"
+     
     environment:
       ELASTIC_USER: elastic
       ELASTIC_PASSWORD: changeme
     networks:
       - elk
-      
- # logstash to process sent log file
-  logstash:
-    build:
-      context: logstash/
-      args:
-        ELK_VERSION: $ELK_VERSION
-    volumes:
-      - type: bind
-        source: ./logstash/config/logstash.yaml
-        target: /usr/share/logstash/config/logstash.yaml
-        read_only: true
-      - type: bind
-        source: ./logstash/pipeline
-        target: /usr/share/logstash/pipeline
-        read_only: true
-    ports:
-      - "5000:5000"
-      - "9600:9600"
-    expose: 
-      - "5044"
-    environment:
-      LS_JAVA_OPTS: "-Xmx256m -Xms256m"
-    networks:
-      - elk
-    depends_on:
-      - elasticsearch
+ 
+ 
      
 # Deploying kibana   
   kibana:
@@ -63,8 +39,8 @@ services:
         ELK_VERSION: $ELK_VERSION
     volumes:
       - type: bind
-        source: ./kibana/config/kibana.yaml
-        target: /usr/share/kibana/config/kibana.yaml
+        source: ./kibana/config/kibana.yml
+        target: /usr/share/kibana/config/kibana.yml
         read_only: true
     ports:
       - "5601:5601"
@@ -77,15 +53,11 @@ services:
   nginx:
     build: ./nginx
     volumes:
-      - ./nginx/config:/etc/nginx/conf.d
+     
       - ./nginx/log:/var/log/nginx
     ports:
       - "80:80"
-      - "443:443"
-    links:
-      - 
-    depends_on: 
-      - 
+  
     networks:
       - elk
    
@@ -95,7 +67,7 @@ services:
     build: ./filebeat
     entrypoint: "filebeat -e -strict.perms=false"
     volumes:
-      - ./filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yaml
+      - ./filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml
       - ./nginx/log:/var/log/nginx
     networks:
       - elk
@@ -103,9 +75,8 @@ services:
       - nginx
       - elasticsearch
       - kibana
-      -logstash
-    links: 
-      - logstash
+      
+    
 
 networks:
   elk:
@@ -113,4 +84,3 @@ networks:
 
 volumes:
   elasticsearch:
-
